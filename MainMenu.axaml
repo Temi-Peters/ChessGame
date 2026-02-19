@@ -1,0 +1,12 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="ChessGame.MainMenu"
+        Width="400" Height="300"
+        Title="Chess Game">
+
+    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+        <TextBlock Text="Welcome to Chess!" FontSize="24" HorizontalAlignment="Center"/>
+        <Button Content="Play" Width="150" Height="50" Click="PlayButton_Click"/>
+    </StackPanel>
+
+</Window>
