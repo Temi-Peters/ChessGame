@@ -5,9 +5,12 @@ using Avalonia.Input;
 using System.Diagnostics;
 
 namespace ChessGame
-{    
+{
     public partial class MainWindow : Window
     {
+        private Ellipse? selectedPiece = null;
+        private Ellipse?[,] board = new Ellipse?[8,8];
+
         public MainWindow()
         {
             InitializeComponent();
@@ -16,12 +19,15 @@ namespace ChessGame
 
         private void GenerateBoard()
         {
-            var grid = this.FindControl<Grid>("BoardGrid")!; // null-forgiving operator
+            var grid = this.FindControl<Grid>("BoardGrid")!;
 
             for (int row = 0; row < 8; row++)
             {
                 for (int col = 0; col < 8; col++)
                 {
+                    int currentRow = row;
+                    int currentCol = col;
+
                     var square = new Border
                     {
                         Background = (row + col) % 2 == 0 ? Brushes.Beige : Brushes.SaddleBrown
@@ -29,71 +35,118 @@ namespace ChessGame
 
                     square.PointerPressed += (s, e) =>
                     {
-                        Debug.WriteLine($"Clicked square: {row},{col}");
+                        OnSquareClicked(currentRow, currentCol);
                     };
 
                     Grid.SetRow(square, row);
                     Grid.SetColumn(square, col);
                     grid.Children.Add(square);
-
-                    SpawnPieces();
                 }
             }
+
+            SpawnPieces();
         }
 
-        // Generates the chess pieces on the board
         private void SpawnPieces()
         {
             var grid = this.FindControl<Grid>("BoardGrid")!;
 
-            // Pawns
             for (int col = 0; col < 8; col++)
             {
-                SpawnPiece(grid, 1, col, PieceType.Pawn, PieceColor.White);
-                SpawnPiece(grid, 6, col, PieceType.Pawn, PieceColor.Black);
+                CreatePiece(grid, 1, col, Brushes.White);
+                CreatePiece(grid, 6, col, Brushes.Black);
             }
 
-            // Rooks
-            SpawnPiece(grid, 0, 0, PieceType.Rook, PieceColor.White);
-            SpawnPiece(grid, 0, 7, PieceType.Rook, PieceColor.White);
-            SpawnPiece(grid, 7, 0, PieceType.Rook, PieceColor.Black);
-            SpawnPiece(grid, 7, 7, PieceType.Rook, PieceColor.Black);
+            // rooks
+            CreatePiece(grid, 0, 0, Brushes.White);
+            CreatePiece(grid, 0, 7, Brushes.White);
+            CreatePiece(grid, 7, 0, Brushes.Black);
+            CreatePiece(grid, 7, 7, Brushes.Black);
 
-            // Knights
-            SpawnPiece(grid, 0, 1, PieceType.Knight, PieceColor.White);
-            SpawnPiece(grid, 0, 6, PieceType.Knight, PieceColor.White);
-            SpawnPiece(grid, 7, 1, PieceType.Knight, PieceColor.Black);
-            SpawnPiece(grid, 7, 6, PieceType.Knight, PieceColor.Black);
+            // knights
+            CreatePiece(grid, 0, 1, Brushes.White);
+            CreatePiece(grid, 0, 6, Brushes.White);
+            CreatePiece(grid, 7, 1, Brushes.Black);
+            CreatePiece(grid, 7, 6, Brushes.Black);
 
-            // Bishops
-            SpawnPiece(grid, 0, 2, PieceType.Bishop, PieceColor.White);
-            SpawnPiece(grid, 0, 5, PieceType.Bishop, PieceColor.White);
-            SpawnPiece(grid, 7, 2, PieceType.Bishop, PieceColor.Black);
-            SpawnPiece(grid, 7, 5, PieceType.Bishop, PieceColor.Black);
+            // bishops
+            CreatePiece(grid, 0, 2, Brushes.White);
+            CreatePiece(grid, 0, 5, Brushes.White);
+            CreatePiece(grid, 7, 2, Brushes.Black);
+            CreatePiece(grid, 7, 5, Brushes.Black);
 
-            // Queens
-            SpawnPiece(grid, 0, 3, PieceType.Queen, PieceColor.White);
-            SpawnPiece(grid, 7, 3, PieceType.Queen, PieceColor.Black);
+            // queens
+            CreatePiece(grid, 0, 3, Brushes.White);
+            CreatePiece(grid, 7, 3, Brushes.Black);
 
-            // Kings
-            SpawnPiece(grid, 0, 4, PieceType.King, PieceColor.White);
-            SpawnPiece(grid, 7, 4, PieceType.King, PieceColor.Black);
+            // kings
+            CreatePiece(grid, 0, 4, Brushes.White);
+            CreatePiece(grid, 7, 4, Brushes.Black);
         }
 
-        // Helper method to create a visual piece
-        private void SpawnPiece(Grid grid, int row, int col, PieceType type, PieceColor color)
+        private void CreatePiece(Grid grid, int row, int col, IBrush color)
         {
-            var pieceCircle = new Ellipse
+            var piece = new Ellipse
             {
-                Fill = color == PieceColor.White ? Brushes.White : Brushes.Black,
+                Fill = color,
                 Width = 50,
                 Height = 50
             };
 
-            Grid.SetRow(pieceCircle, row);
-            Grid.SetColumn(pieceCircle, col);
-            grid.Children.Add(pieceCircle);
+            piece.PointerPressed += (s, e) =>
+            {
+                SelectPiece(piece);
+                e.Handled = true;
+            };
+
+            Grid.SetRow(piece, row);
+            Grid.SetColumn(piece, col);
+
+            board[row, col] = piece;
+            grid.Children.Add(piece);
         }
 
+        private void SelectPiece(Ellipse piece)
+        {
+            if (selectedPiece != null)
+                selectedPiece.Stroke = null;
+
+            selectedPiece = piece;
+            selectedPiece.Stroke = Brushes.Yellow;
+            selectedPiece.StrokeThickness = 3;
+
+            int row = Grid.GetRow(piece);
+            int col = Grid.GetColumn(piece);
+            Debug.WriteLine($"Selected piece at {row},{col}");
+        }
+
+        private void OnSquareClicked(int row, int col)
+        {
+            if (selectedPiece == null)
+                return;
+
+            var grid = this.FindControl<Grid>("BoardGrid")!;
+            int oldRow = Grid.GetRow(selectedPiece);
+            int oldCol = Grid.GetColumn(selectedPiece);
+
+            // capture if present
+            if (board[row, col] != null)
+            {
+                grid.Children.Remove(board[row, col]!);
+            }
+
+            // move
+            Grid.SetRow(selectedPiece, row);
+            Grid.SetColumn(selectedPiece, col);
+
+            // update board array
+            board[oldRow, oldCol] = null;
+            board[row, col] = selectedPiece;
+
+            selectedPiece.Stroke = null;
+            selectedPiece = null;
+
+            Debug.WriteLine($"Moved piece to {row},{col}");
+        }
     }
 }
