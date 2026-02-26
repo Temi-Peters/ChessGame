@@ -1,0 +1,24 @@
+<Window
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    x:Class="ChessGame.PromotionWindow"
+    Width="300"
+    Height="200"
+    Title="Promote Pawn">
+
+    <StackPanel
+        HorizontalAlignment="Center"
+        VerticalAlignment="Center"
+        Spacing="10">
+
+        <TextBlock Text="Choose Promotion Piece"
+                   HorizontalAlignment="Center"/>
+
+        <Button Content="Queen" />
+        <Button Content="Rook" />
+        <Button Content="Bishop" />
+        <Button Content="Knight" />
+
+    </StackPanel>
+
+</Window>

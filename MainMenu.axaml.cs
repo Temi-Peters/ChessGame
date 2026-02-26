@@ -1,22 +1,17 @@
 using Avalonia.Controls;
+using Avalonia.Markup.Xaml;
 
-namespace ChessGame
+namespace ChessGame;
+
+public partial class MainMenu : Window
 {
-    public partial class MainMenu : Window
+    public MainMenu()
     {
-        public MainMenu()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
+    }
 
-        private void PlayButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-        {
-            // Open the main game window
-            var gameWindow = new MainWindow();
-            gameWindow.Show();
-
-            // Close the main menu
-            this.Close();
-        }
+    private void InitializeComponent()
+    {
+        AvaloniaXamlLoader.Load(this);
     }
 }

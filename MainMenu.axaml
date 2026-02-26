@@ -1,12 +1,21 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="ChessGame.MainMenu"
-        Width="400" Height="300"
-        Title="Chess Game">
+        Width="400"
+        Height="300"
+        Title="Main Menu">
 
-    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-        <TextBlock Text="Welcome to Chess!" FontSize="24" HorizontalAlignment="Center"/>
-        <Button Content="Play" Width="150" Height="50" Click="PlayButton_Click"/>
+    <StackPanel>
+        <TextBlock x:Name="StatusText"
+                   FontSize="20"
+                   HorizontalAlignment="Center"
+                   Margin="10"/>
+
+        <UniformGrid x:Name="BoardGrid"
+                     Rows="8"
+                     Columns="8"
+                     Width="800"
+                     Height="800"/>
     </StackPanel>
 
 </Window>
