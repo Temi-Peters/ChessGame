@@ -18,6 +18,7 @@ public partial class MainWindow : Window
     private GameState _state = new();
     private (int r, int c)? _selected;
     private List<Move> _legalMoves = new();
+    private string? _gameResult;
 
     public MainWindow()
     {
@@ -34,13 +35,18 @@ public partial class MainWindow : Window
     private void DrawBoard()
     {
         var boardGrid = this.FindControl<UniformGrid>("BoardGrid")
-        ?? throw new Exception("BoardGrid not found in XAML");
+            ?? throw new Exception("BoardGrid not found in XAML");
 
         var statusText = this.FindControl<TextBlock>("StatusText")
-        ?? throw new Exception("StatusText not found in XAML");
+            ?? throw new Exception("StatusText not found in XAML");
 
         boardGrid.Children.Clear();
-        statusText.Text = $"{_state.CurrentTurn} to move";
+
+        // Status display logic
+        if (_gameResult != null)
+            statusText.Text = _gameResult;
+        else
+            statusText.Text = $"{_state.CurrentTurn} to move";
 
         for (int r = 0; r < 8; r++)
         {
@@ -97,12 +103,14 @@ public partial class MainWindow : Window
         };
 
         var uri = new Uri($"avares://ChessGame/Assets/{prefix}{name}.png");
-
         return new Bitmap(AssetLoader.Open(uri));
     }
 
     private async void OnSquareClicked(object? sender, PointerPressedEventArgs e)
     {
+        if (_gameResult != null)
+            return; // Stop interaction if game over
+
         var border = (Border)sender!;
         var (r, c) = ((int, int))border.Tag!;
 
@@ -125,7 +133,7 @@ public partial class MainWindow : Window
             {
                 Move selectedMove;
 
-                // Promotion case (4 moves exist)
+                // Handle promotion selection
                 if (possibleMoves.Count > 1)
                 {
                     var promoWindow = new PromotionWindow();
@@ -140,6 +148,34 @@ public partial class MainWindow : Window
                 }
 
                 _state.ApplyMove(selectedMove);
+
+                // Check for checkmate or stalemate
+                bool hasAnyLegalMoves = false;
+
+                for (int row = 0; row < 8 && !hasAnyLegalMoves; row++)
+                {
+                    for (int col = 0; col < 8; col++)
+                    {
+                        var piece = _state.Board[row, col];
+                        if (piece != null && piece.Color == _state.CurrentTurn)
+                        {
+                            var moves = MoveGenerator.GenerateLegalMoves(_state, row, col);
+                            if (moves.Count > 0)
+                            {
+                                hasAnyLegalMoves = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (!hasAnyLegalMoves)
+                {
+                    _gameResult = _state.IsInCheck(_state.CurrentTurn)
+                        ? $"Checkmate! {(_state.CurrentTurn == PieceColor.White ? "Black" : "White")} wins!"
+                        : "Stalemate!";
+                }
+
                 _selected = null;
                 _legalMoves.Clear();
                 DrawBoard();
