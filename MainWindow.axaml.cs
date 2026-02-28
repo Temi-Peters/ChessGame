@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using Avalonia.Controls.Primitives;
 using System;
 using Avalonia.Platform;
-
+using System.Linq;
 
 namespace ChessGame;
 
@@ -101,7 +101,7 @@ public partial class MainWindow : Window
         return new Bitmap(AssetLoader.Open(uri));
     }
 
-    private void OnSquareClicked(object? sender, PointerPressedEventArgs e)
+    private async void OnSquareClicked(object? sender, PointerPressedEventArgs e)
     {
         var border = (Border)sender!;
         var (r, c) = ((int, int))border.Tag!;
@@ -117,16 +117,33 @@ public partial class MainWindow : Window
         }
         else
         {
-            foreach (var move in _legalMoves)
+            var possibleMoves = _legalMoves
+                .Where(m => m.ToRow == r && m.ToCol == c)
+                .ToList();
+
+            if (possibleMoves.Count > 0)
             {
-                if (move.ToRow == r && move.ToCol == c)
+                Move selectedMove;
+
+                // Promotion case (4 moves exist)
+                if (possibleMoves.Count > 1)
                 {
-                    _state.ApplyMove(move);
-                    _selected = null;
-                    _legalMoves.Clear();
-                    DrawBoard();
-                    return;
+                    var promoWindow = new PromotionWindow();
+                    var selectedPiece = await promoWindow.ShowDialog<PieceType>(this);
+
+                    selectedMove = possibleMoves
+                        .First(m => m.PromotionType == selectedPiece);
                 }
+                else
+                {
+                    selectedMove = possibleMoves[0];
+                }
+
+                _state.ApplyMove(selectedMove);
+                _selected = null;
+                _legalMoves.Clear();
+                DrawBoard();
+                return;
             }
 
             _selected = null;

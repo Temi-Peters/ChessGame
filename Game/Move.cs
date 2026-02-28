@@ -7,11 +7,13 @@ public class Move
     public int ToRow { get; }
     public int ToCol { get; }
 
-    public Move(int fr, int fc, int tr, int tc)
+    public PieceType? PromotionType { get; set; }
+
+    public Move(int fromRow, int fromCol, int toRow, int toCol)
     {
-        FromRow = fr;
-        FromCol = fc;
-        ToRow = tr;
-        ToCol = tc;
+        FromRow = fromRow;
+        FromCol = fromCol;
+        ToRow = toRow;
+        ToCol = toCol;
     }
 }

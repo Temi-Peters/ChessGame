@@ -75,12 +75,19 @@ public class GameState
             Board[move.ToRow, rookTo]!.HasMoved = true;
         }
 
-        // Promotion (auto queen for now)
-        if (piece?.Type == PieceType.Pawn &&
-            (move.ToRow == 0 || move.ToRow == 7))
+        if (piece == null)
+            return;
+        if (move.PromotionType != null)
         {
             Board[move.ToRow, move.ToCol] =
-                new Piece(PieceType.Queen, piece.Color);
+                new Piece(move.PromotionType.Value, piece.Color)
+                {
+                    HasMoved = true
+                };
+        }
+        else
+        {
+            Board[move.ToRow, move.ToCol] = piece;
         }
 
         LastMove = move;
